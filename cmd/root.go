@@ -1,6 +1,5 @@
 /*
 Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-
 */
 package cmd
 
@@ -16,17 +15,22 @@ var cfgFile string
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "ReMarkable-cli",
-	Short: "A brief description of your application",
-	Long: `A longer description that spans multiple lines and likely contains
-examples and usage of using your application. For example:
+	Use:   "space-cli",
+	Short: "Space Launch Information CLI",
+	Long: `A comprehensive CLI tool for exploring space launch information.
+	
+This tool integrates with space launch APIs to provide detailed information about:
+• Upcoming and historical launches
+• Launch statistics and success rates
+• Cost analysis and organization data
+• Crew information and mission details
 
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+Get started with: space-cli launches --help`,
+	Run: func(cmd *cobra.Command, args []string) {
+		fmt.Println("🚀 Space Launch Information CLI")
+		fmt.Println("Use 'space-cli launches --help' to explore launch data")
+		fmt.Println("Use 'space-cli --help' to see all available commands")
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.

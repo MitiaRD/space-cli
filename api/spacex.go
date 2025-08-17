@@ -23,10 +23,6 @@ func GetAllCrewMembers() (map[string]model.Crew, error) {
 	return crewMap, nil
 }
 
-func GetLaunchesWithQuery(query map[string]interface{}) ([]model.Launch, error) {
-	return fetchLaunchesWithQuery("https://api.spacexdata.com/v4/launches/query", query)
-}
-
 func GetRocket(rocketId string) (model.Rocket, error) {
 	url := fmt.Sprintf("https://api.spacexdata.com/v4/rockets/%s", rocketId)
 	return fetchFromAPI[model.Rocket](url)
@@ -48,6 +44,10 @@ func fetchFromAPI[T any](url string) (T, error) {
 
 	err = json.Unmarshal(body, &result)
 	return result, err
+}
+
+func GetLaunchesWithQuery(query map[string]interface{}) ([]model.Launch, error) {
+	return fetchLaunchesWithQuery("https://api.spacexdata.com/v4/launches/query", query)
 }
 
 func fetchLaunchesWithQuery(url string, query map[string]interface{}) ([]model.Launch, error) {

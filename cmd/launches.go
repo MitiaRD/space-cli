@@ -17,7 +17,11 @@ var launchesCmd = &cobra.Command{
 	Long: `Launches provides comprehensive information about space launches.
 	
 Available subcommands:
-  upcoming     - Get upcoming launches`,
+  limit        - Limit the number of launches to show,
+  start        - Start date (YYYY-MM-DD),
+  end          - End date (YYYY-MM-DD),
+  failed       - Filter for failed launches only,
+  upcoming     - Filter for upcoming launches only`,
 	Run: func(cmd *cobra.Command, args []string) {
 		query := buildLaunchQuery(cmd)
 

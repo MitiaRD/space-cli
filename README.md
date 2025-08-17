@@ -15,3 +15,9 @@ Get the upcoming launch stats from SpaceX:
 ```sh
 ./space-cli launches upcoming --limit 3
 ```
+
+Get the past launch stats from SpaceX:
+
+```sh
+./space-cli launches past --limit 3
+```

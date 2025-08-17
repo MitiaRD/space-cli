@@ -8,14 +8,17 @@ type Launch struct {
 	Name         string    `json:"name"`
 	Date         time.Time `json:"date_utc"`
 	Success      bool      `json:"success"`
-	Crew         []Crew    `json:"crew"`
+	Crew         []string  `json:"crew"`
 	RocketId     string    `json:"rocket"`
 	Details      string    `json:"details"`
 }
 
 type Crew struct {
-	Name string `json:"name"`
-	Role string `json:"role"`
+	ID     string `json:"id"`
+	Name   string `json:"name"`
+	Agency string `json:"agency"`
+	Image  string `json:"image"`
+	Status string `json:"status"`
 }
 
 type Rocket struct {

@@ -27,7 +27,7 @@ Available subcommands:
 var upcomingCmd = &cobra.Command{
 	Use:   "upcoming",
 	Short: "Get upcoming launches",
-	Long:  `Get a list of upcoming space launches`,
+	Long:  `Get a list of upcoming spacex launches`,
 	Run: func(cmd *cobra.Command, args []string) {
 		limit, _ := cmd.Flags().GetInt("limit")
 		if limit <= 0 {
@@ -43,10 +43,7 @@ var upcomingCmd = &cobra.Command{
 		fmt.Printf("\n🚀 Upcoming Launches (showing %d):\n", len(launches))
 		fmt.Println(strings.Repeat("-", 80))
 
-		for i, launch := range launches {
-			if i >= limit {
-				break
-			}
+		for _, launch := range launches {
 			rocket, err := api.GetRocket(launch.RocketId)
 			if err != nil {
 				fmt.Printf("Error fetching rocket: %v\n", err)
@@ -55,10 +52,57 @@ var upcomingCmd = &cobra.Command{
 			fmt.Printf("📅 %s\n", launch.Date.Format("2006-01-02 15:04"))
 			fmt.Printf("   🏷️  %s\n", launch.ID)
 			fmt.Printf("   🎬  %s\n", launch.Name)
-			// fmt.Printf("   🫆 %s\n", launch.Details)
 			fmt.Printf("   🚀 %s\n", rocket.Name)
 			fmt.Printf("   💰 $%v\n", rocket.CostPerLaunch)
 			fmt.Printf("   ✅ %t\n", launch.Success)
+			fmt.Println()
+		}
+	},
+}
+
+var pastCmd = &cobra.Command{
+	Use:   "past",
+	Short: "Get past launches",
+	Long:  `Get a list of past spacex launches`,
+	Run: func(cmd *cobra.Command, args []string) {
+		limit, _ := cmd.Flags().GetInt("limit")
+		if limit <= 0 {
+			limit = 10
+		}
+
+		launches, err := api.GetPastLaunches(limit)
+		if err != nil {
+			fmt.Printf("Error fetching past launches: %v\n", err)
+			return
+		}
+
+		fmt.Printf("\n🚀 Past Launches (showing %d):\n", len(launches))
+		fmt.Println(strings.Repeat("-", 80))
+		crew, err := api.GetAllCrewMembers()
+		if err != nil {
+			fmt.Printf("Error fetching crew: %v\n", err)
+		}
+
+		for _, launch := range launches {
+			rocket, err := api.GetRocket(launch.RocketId)
+			if err != nil {
+				fmt.Printf("Error fetching rocket: %v\n", err)
+				continue
+			}
+			fmt.Printf("📅 %s\n", launch.Date.Format("2006-01-02 15:04"))
+			fmt.Printf("   🎬  %s\n", launch.Name)
+			fmt.Printf("   🚀 %s\n", rocket.Name)
+			fmt.Printf("   💰 $%v\n", rocket.CostPerLaunch)
+			fmt.Printf("   ✅ %t\n", launch.Success)
+			fmt.Printf("   📂 %s\n", launch.Details)
+			for _, crewId := range launch.Crew {
+				crew, ok := crew[crewId]
+				if !ok {
+					fmt.Printf("   👤 %s\n", crewId)
+				} else {
+					fmt.Printf("   👤 %s\n", crew.Name)
+				}
+			}
 			fmt.Println()
 		}
 	},
@@ -69,7 +113,9 @@ func init() {
 
 	// Add subcommands
 	launchesCmd.AddCommand(upcomingCmd)
+	launchesCmd.AddCommand(pastCmd)
 
 	// Add flags for subcommands
 	upcomingCmd.Flags().IntP("limit", "l", 10, "Number of upcoming launches to show")
+	pastCmd.Flags().IntP("limit", "l", 10, "Number of past launches to show")
 }

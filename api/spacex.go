@@ -5,15 +5,10 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"sort"
+	"strings"
 
 	"github.com/MitiaRD/ReMarkable-cli/model"
 )
-
-func GetCrewMember(crewId string) (model.Crew, error) {
-	url := fmt.Sprintf("https://api.spacexdata.com/v4/crew/%s", crewId)
-	return fetchFromAPI[model.Crew](url)
-}
 
 func GetAllCrewMembers() (map[string]model.Crew, error) {
 	url := "https://api.spacexdata.com/v4/crew"
@@ -28,39 +23,8 @@ func GetAllCrewMembers() (map[string]model.Crew, error) {
 	return crewMap, nil
 }
 
-// SpaceX api does not seem to support limit or order by date flags...
-func GetPastLaunches(limit int) ([]model.Launch, error) {
-	url := "https://api.spacexdata.com/v4/launches/past"
-	launches, err := fetchFromAPI[[]model.Launch](url)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(launches, func(i, j int) bool {
-		return launches[i].Date.After(launches[j].Date)
-	})
-
-	if limit > 0 && limit < len(launches) {
-		return launches[:limit], nil
-	}
-	return launches, nil
-}
-
-func GetUpcomingLaunches(limit int) ([]model.Launch, error) {
-	url := "https://api.spacexdata.com/v4/launches/upcoming"
-	launches, err := fetchFromAPI[[]model.Launch](url)
-	if err != nil {
-		return nil, err
-	}
-
-	sort.Slice(launches, func(i, j int) bool {
-		return launches[i].Date.Before(launches[j].Date)
-	})
-
-	if limit > 0 && limit < len(launches) {
-		return launches[:limit], nil
-	}
-	return launches, nil
+func GetLaunchesWithQuery(query map[string]interface{}) ([]model.Launch, error) {
+	return fetchLaunchesWithQuery("https://api.spacexdata.com/v4/launches/query", query)
 }
 
 func GetRocket(rocketId string) (model.Rocket, error) {
@@ -84,4 +48,37 @@ func fetchFromAPI[T any](url string) (T, error) {
 
 	err = json.Unmarshal(body, &result)
 	return result, err
+}
+
+func fetchLaunchesWithQuery(url string, query map[string]interface{}) ([]model.Launch, error) {
+	jsonData, err := json.Marshal(query)
+	if err != nil {
+		return nil, err
+	}
+
+	req, err := http.NewRequest("POST", url, strings.NewReader(string(jsonData)))
+	if err != nil {
+		return nil, err
+	}
+
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, err
+	}
+
+	var result struct {
+		Docs []model.Launch `json:"docs"`
+	}
+
+	err = json.Unmarshal(body, &result)
+	return result.Docs, err
 }

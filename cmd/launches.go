@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/MitiaRD/ReMarkable-cli/api"
 	"github.com/MitiaRD/ReMarkable-cli/model"
@@ -62,7 +63,7 @@ Available subcommands:
 			fmt.Printf("   🏷️  %s\n", launch.Name)
 			fmt.Printf("   %s\n", status)
 			fmt.Printf("   🚀 %s\n", rocket.Name)
-			fmt.Printf("   💰 $%v million\n", rocket.CostPerLaunch)
+			fmt.Printf("   ℹ️ %v \n", launch.Details)
 
 			if len(launch.Crew) > 0 {
 				crewMap, err := api.GetAllCrewMembers()
@@ -75,6 +76,26 @@ Available subcommands:
 						}
 					}
 					fmt.Printf("%s\n", strings.Join(crewNames, ", "))
+				}
+			}
+
+			launchpad, _ := cmd.Flags().GetBool("launchpad")
+			if launchpad {
+				launchpad, err := api.GetLaunchpad(launch.LaunchpadId)
+				if err != nil {
+					fmt.Printf("Error fetching launchpad: %v\n", err)
+					continue
+				}
+				fmt.Printf("   📍 %s\n", launchpad.Name)
+				fmt.Printf("      (%s)\n", launchpad.Details)
+
+				if weatherEvents, _ := cmd.Flags().GetBool("weather"); weatherEvents {
+					weatherEvents, err := api.GetEarthEvents(buildWeatherEventsQueryParams(launchpad.Longitude, launchpad.Latitude, launch.Date))
+					if err != nil {
+						fmt.Printf("Error fetching weather events: %v\n", err)
+						continue
+					}
+					fmt.Printf("   🌤️ %s\n", weatherEvents)
 				}
 			}
 
@@ -158,6 +179,10 @@ func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
 	return query
 }
 
+func buildWeatherEventsQueryParams(long, lat float64, date time.Time) string {
+	return fmt.Sprintf("?bbox=%f,%f,%f,%f&start=%s&end=%s", long-1, lat-1, long+1, lat+1, date.Format("2006-01-02"), date.Format("2006-01-02"))
+}
+
 func init() {
 	rootCmd.AddCommand(launchesCmd)
 
@@ -167,4 +192,6 @@ func init() {
 	launchesCmd.Flags().BoolP("failed", "f", false, "Filter for failed launches only")
 	launchesCmd.Flags().BoolP("upcoming", "u", false, "Filter for upcoming launches only")
 	launchesCmd.Flags().BoolP("cost", "c", false, "Get the total cost for all matching launches")
+	launchesCmd.Flags().BoolP("launchpad", "p", false, "Show launchpad information")
+	launchesCmd.Flags().BoolP("weather", "w", false, "Show launchpad location weather warning information")
 }

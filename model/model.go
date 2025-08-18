@@ -11,6 +11,16 @@ type Launch struct {
 	Crew         []string  `json:"crew"`
 	RocketId     string    `json:"rocket"`
 	Details      string    `json:"details"`
+	LaunchpadId  string    `json:"launchpad"`
+}
+
+type Launchpad struct {
+	Name      string  `json:"full_name"`
+	Locality  string  `json:"locality"`
+	Latitude  float64 `json:"latitude"`
+	Longitude float64 `json:"longitude"`
+	Status    string  `json:"status"`
+	Details   string  `json:"details"`
 }
 
 type Crew struct {
@@ -43,4 +53,24 @@ type Mass struct {
 type Length struct {
 	Meters float32 `json:"meters"`
 	Feet   float32 `json:"feet"`
+}
+
+// NASA API Models
+type NasaEarthEvent struct {
+	ID          string `json:"id"`
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Categories  []struct {
+		ID    string `json:"id"`
+		Title string `json:"title"`
+	} `json:"categories"`
+	Geometry []struct {
+		Type        string    `json:"type"`
+		Coordinates []float64 `json:"coordinates"`
+		Date        string    `json:"date"`
+	} `json:"geometry"`
+}
+
+type NasaEarth struct {
+	Events []NasaEarthEvent `json:"events"`
 }

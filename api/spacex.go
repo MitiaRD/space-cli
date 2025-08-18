@@ -28,6 +28,11 @@ func GetRocket(rocketId string) (model.Rocket, error) {
 	return fetchFromAPI[model.Rocket](url)
 }
 
+func GetLaunchpad(launchpadId string) (model.Launchpad, error) {
+	url := fmt.Sprintf("https://api.spacexdata.com/v4/launchpads/%s", launchpadId)
+	return fetchFromAPI[model.Launchpad](url)
+}
+
 func fetchFromAPI[T any](url string) (T, error) {
 	var result T
 

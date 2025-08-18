@@ -161,7 +161,7 @@ func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
 func init() {
 	rootCmd.AddCommand(launchesCmd)
 
-	launchesCmd.Flags().IntP("limit", "l", 10, "Number of past launches to show")
+	launchesCmd.Flags().IntP("limit", "l", 200, "Number of past launches to show")
 	launchesCmd.Flags().StringP("start", "s", "", "Start date (YYYY-MM-DD)")
 	launchesCmd.Flags().StringP("end", "e", "", "End date (YYYY-MM-DD)")
 	launchesCmd.Flags().BoolP("failed", "f", false, "Filter for failed launches only")

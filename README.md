@@ -13,11 +13,13 @@ Following the commands below you can get to know the latest stats in space explo
 Get the upcoming launch stats from SpaceX:
 
 ```sh
-./space-cli launches upcoming --limit 3
-```
+./space-cli launches --upcoming
 
-Get the past launch stats from SpaceX:
+./space-cli launches --start 2006-01-01 --end 2025-01-01
 
-```sh
-./space-cli launches past --limit 3
+./space-cli launches --failed
+
+./space-cli launches --cost
+
+./space-cli launches --start 2006-01-01 --end 2025-01-01 --failed --cost
 ```

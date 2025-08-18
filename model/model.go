@@ -7,7 +7,7 @@ type Launch struct {
 	FlightNumber int       `json:"flight_number"`
 	Name         string    `json:"name"`
 	Date         time.Time `json:"date_utc"`
-	Success      bool      `json:"success"`
+	Success      *bool     `json:"success"`
 	Crew         []string  `json:"crew"`
 	RocketId     string    `json:"rocket"`
 	Details      string    `json:"details"`

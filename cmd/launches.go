@@ -6,8 +6,10 @@ package cmd
 import (
 	"fmt"
 	"strings"
+	"sync"
 
 	"github.com/MitiaRD/ReMarkable-cli/api"
+	"github.com/MitiaRD/ReMarkable-cli/model"
 	"github.com/spf13/cobra"
 )
 
@@ -32,8 +34,14 @@ Available subcommands:
 		}
 
 		fmt.Printf("\n🚀 Launches (showing %d):\n", len(launches))
-		fmt.Println(strings.Repeat("-", 80))
 
+		cost, _ := cmd.Flags().GetBool("cost")
+		if cost {
+			getCosts(launches)
+			return
+		}
+
+		fmt.Println(strings.Repeat("-", 80))
 		for _, launch := range launches {
 			rocket, err := api.GetRocket(launch.RocketId)
 			if err != nil {
@@ -41,9 +49,13 @@ Available subcommands:
 				continue
 			}
 
-			status := "❌ Failed"
-			if launch.Success {
-				status = "✅ Success"
+			status := "❓ Unknown"
+			if launch.Success != nil {
+				if *launch.Success {
+					status = "✅ Success"
+				} else {
+					status = "❌ Failed"
+				}
 			}
 
 			fmt.Printf("📅 %s\n", launch.Date.Format("2006-01-02 15:04"))
@@ -69,6 +81,41 @@ Available subcommands:
 			fmt.Println()
 		}
 	},
+}
+
+func getCosts(launches []model.Launch) (int, error) {
+	totalCost := 0
+	var wg sync.WaitGroup
+
+	costChan := make(chan int, len(launches))
+
+	for _, launch := range launches {
+		wg.Add(1)
+		go func(rocketId string) {
+			defer wg.Done()
+
+			rocket, err := api.GetRocket(rocketId)
+			if err != nil {
+				fmt.Printf("Error fetching rocket: %v\n", err)
+				costChan <- 0
+				return
+			}
+
+			costChan <- rocket.CostPerLaunch
+		}(launch.RocketId)
+	}
+
+	go func() {
+		wg.Wait()
+		close(costChan)
+	}()
+
+	for cost := range costChan {
+		totalCost += cost
+	}
+
+	fmt.Printf("Total cost: $%d million\n", totalCost)
+	return totalCost, nil
 }
 
 func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
@@ -100,13 +147,14 @@ func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
 	upcoming, _ := cmd.Flags().GetBool("upcoming")
 	if upcoming {
 		query["query"].(map[string]interface{})["upcoming"] = true
+	} else {
+		query["query"].(map[string]interface{})["upcoming"] = false
 	}
 
 	limit, _ := cmd.Flags().GetInt("limit")
 	if limit > 0 {
 		query["options"].(map[string]interface{})["limit"] = limit
 	}
-
 	return query
 }
 
@@ -116,6 +164,7 @@ func init() {
 	launchesCmd.Flags().IntP("limit", "l", 10, "Number of past launches to show")
 	launchesCmd.Flags().StringP("start", "s", "", "Start date (YYYY-MM-DD)")
 	launchesCmd.Flags().StringP("end", "e", "", "End date (YYYY-MM-DD)")
-	launchesCmd.Flags().BoolP("failed", "f", true, "Filter for successful launches only")
-	launchesCmd.Flags().BoolP("upcoming", "c", false, "Filter for upcoming launches only")
+	launchesCmd.Flags().BoolP("failed", "f", false, "Filter for failed launches only")
+	launchesCmd.Flags().BoolP("upcoming", "u", false, "Filter for upcoming launches only")
+	launchesCmd.Flags().BoolP("cost", "c", false, "Get the total cost for all matching launches")
 }

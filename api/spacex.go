@@ -80,5 +80,6 @@ func fetchLaunchesWithQuery(url string, query map[string]interface{}) ([]model.L
 	}
 
 	err = json.Unmarshal(body, &result)
+
 	return result.Docs, err
 }

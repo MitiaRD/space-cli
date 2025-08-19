@@ -36,7 +36,7 @@ Get the launch total costs (Data Sources: SpaceX):
 ./space-cli launches --cost
 ```
 
-Get the launch near earth asteroids data (Data Sources: SpaceX, NASA):
+Get launches with near-earth asteroid data from NASA (Data Sources: SpaceX, NASA):
 
 ```sh
 ./space-cli launches --limit 5 --asteroids

@@ -28,6 +28,9 @@ This tool integrates with space launch APIs to provide detailed information abou
 
 Get started with: space-cli launches --help`,
 	Run: func(cmd *cobra.Command, args []string) {
+		logger := SetupLogger()
+		logger.Info("Space CLI started")
+
 		fmt.Println("🚀 Space Launch Information CLI")
 		fmt.Println("Use 'space-cli launches --help' to explore launch data")
 		fmt.Println("Use 'space-cli --help' to see all available commands")
@@ -59,9 +62,10 @@ func init() {
 
 // initConfig reads in config file and ENV variables if set.
 func initConfig() {
+	logger := SetupLogger()
 
 	if err := gotenv.Load(); err == nil {
-		fmt.Fprintln(os.Stderr, "Loaded .env file")
+		logger.Info("Loaded .env file")
 	}
 
 	if cfgFile != "" {
@@ -82,6 +86,6 @@ func initConfig() {
 
 	// If a config file is found, read it in.
 	if err := viper.ReadInConfig(); err == nil {
-		fmt.Fprintln(os.Stderr, "Using config file:", viper.ConfigFileUsed())
+		logger.Info("Using config file", "file", viper.ConfigFileUsed())
 	}
 }

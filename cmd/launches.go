@@ -4,12 +4,12 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"context"
 	"fmt"
 	"strings"
 	"sync"
 	"time"
 
-	"github.com/MitiaRD/ReMarkable-cli/api"
 	"github.com/MitiaRD/ReMarkable-cli/model"
 	"github.com/spf13/cobra"
 )
@@ -26,19 +26,32 @@ Available subcommands:
   failed       - Filter for failed launches only,
   upcoming     - Filter for upcoming launches only`,
 	Run: func(cmd *cobra.Command, args []string) {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		config, err := LoadConfiguration()
+		if err != nil {
+			fmt.Printf("Error loading configuration: %v\n", err)
+			return
+		}
+
+		logger := SetupLogger()
+		service := NewLaunchesService(config, logger)
+
 		query := buildLaunchQuery(cmd)
 
-		launches, err := api.GetLaunchesWithQuery(query)
+		launches, err := service.GetLaunches(ctx, query)
 		if err != nil {
+			logger.Error("failed to fetch launches", "error", err)
 			fmt.Printf("Error fetching launches: %v\n", err)
 			return
 		}
 
 		fmt.Printf("\n🚀 Launches (showing %d):\n", len(launches))
 
-		rockets, err := api.GetAllRockets()
+		rockets, err := service.GetRockets(ctx)
 		if err != nil {
-			fmt.Printf("Error fetching rocket: %v\n", err)
+			logger.Error("failed to fetch rockets", "error", err)
 		}
 
 		cost, _ := cmd.Flags().GetBool("cost")
@@ -47,14 +60,14 @@ Available subcommands:
 			return
 		}
 
-		crewMap, err := api.GetAllCrewMembers()
+		crewMap, err := service.GetCrewMembers(ctx)
 		if err != nil {
-			fmt.Printf("Error fetching crew members: %v\n", err)
+			logger.Error("failed to fetch crew members", "error", err)
 		}
 
-		launchpads, err := api.GetAllLaunchpads()
+		launchpads, err := service.GetLaunchpads(ctx)
 		if err != nil {
-			fmt.Printf("Error fetching launchpad: %v\n", err)
+			logger.Error("failed to fetch launchpads", "error", err)
 		}
 
 		fmt.Println(strings.Repeat("-", 80))
@@ -100,9 +113,9 @@ Available subcommands:
 				fmt.Printf("      (%s)\n", launchpad.Details)
 
 				if weatherEvents, _ := cmd.Flags().GetBool("weather"); weatherEvents {
-					weatherEvents, err := api.GetEarthEvents(api.BuildWeatherEventsQueryParams(launchpad.Longitude, launchpad.Latitude, launch.Date))
+					weatherEvents, err := service.GetEarthEvents(ctx, launchpad.Longitude, launchpad.Latitude, launch.Date)
 					if err != nil {
-						fmt.Printf("Error fetching weather events: %v\n", err)
+						logger.Error("failed to fetch weather events", "error", err)
 						continue
 					}
 					if len(weatherEvents) == 0 {
@@ -117,9 +130,9 @@ Available subcommands:
 			}
 
 			if asteroids, _ := cmd.Flags().GetBool("asteroids"); asteroids {
-				asteroids, err := api.GetAsteroids(buildAsteroidsQueryParams(launch.Date))
+				asteroids, err := service.GetAsteroids(ctx, launch.Date)
 				if err != nil {
-					fmt.Printf("Error fetching asteroids: %v\n", err)
+					logger.Error("failed to fetch asteroids", "error", err)
 				}
 				hazardous := 0
 				nonHazardous := 0
@@ -156,10 +169,14 @@ func getCosts(launches []model.Launch, rockets map[string]model.Rocket) (int, er
 
 	for _, launch := range launches {
 		wg.Add(1)
-		go func(rocketId string) {
+		go func(launch model.Launch) {
 			defer wg.Done()
-			costChan <- rockets[launch.RocketId].CostPerLaunch
-		}(launch.RocketId)
+			if rocket, exists := rockets[launch.RocketId]; exists {
+				costChan <- rocket.CostPerLaunch
+			} else {
+				costChan <- 0
+			}
+		}(launch)
 	}
 
 	go func() {

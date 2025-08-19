@@ -116,31 +116,31 @@ Available subcommands:
 				}
 			}
 
-			if asteriods, _ := cmd.Flags().GetBool("asteriod"); asteriods {
-				asteriods, err := api.GetAsteriods(buildAsteriodsQueryParams(launch.Date))
+			if asteroids, _ := cmd.Flags().GetBool("asteroid"); asteroids {
+				asteroids, err := api.GetAsteroids(buildAsteroidsQueryParams(launch.Date))
 				if err != nil {
-					fmt.Printf("Error fetching asteriods: %v\n", err)
+					fmt.Printf("Error fetching asteroids: %v\n", err)
 				}
 				hazardous := 0
 				nonHazardous := 0
 				maxDiameter := 0.0
 				minDiameter := 0.0
-				for _, asteriods := range asteriods.NearEarthObjects {
-					for _, asteriod := range asteriods {
-						if asteriod.Hazardous {
+				for _, asteroids := range asteroids.NearEarthObjects {
+					for _, asteroid := range asteroids {
+						if asteroid.Hazardous {
 							hazardous++
 						} else {
 							nonHazardous++
 						}
-						if asteriod.Diameter.Meters.Estimated > maxDiameter {
-							maxDiameter = asteriod.Diameter.Meters.Estimated
+						if asteroid.Diameter.Meters.Estimated > maxDiameter {
+							maxDiameter = asteroid.Diameter.Meters.Estimated
 						}
-						if asteriod.Diameter.Meters.Estimated < minDiameter || minDiameter == 0 {
-							minDiameter = asteriod.Diameter.Meters.Estimated
+						if asteroid.Diameter.Meters.Estimated < minDiameter || minDiameter == 0 {
+							minDiameter = asteroid.Diameter.Meters.Estimated
 						}
 					}
 				}
-				fmt.Printf("   🌍  total number of near earth asteroids %d (hazardous: %d, non-hazardous: %d) with diameters ranging from %f to %f meters\n", asteriods.ElementCount, hazardous, nonHazardous, minDiameter, maxDiameter)
+				fmt.Printf("   🌍  total number of near earth asteroids %d (hazardous: %d, non-hazardous: %d) with diameters ranging from %f to %f meters\n", asteroids.ElementCount, hazardous, nonHazardous, minDiameter, maxDiameter)
 			}
 
 			fmt.Println()
@@ -175,7 +175,7 @@ func getCosts(launches []model.Launch, rockets map[string]model.Rocket) (int, er
 	return totalCost, nil
 }
 
-func buildAsteriodsQueryParams(date time.Time) string {
+func buildAsteroidsQueryParams(date time.Time) string {
 	return fmt.Sprintf("?start_date=%s&end_date=%s", date.Format("2006-01-02"), date.Format("2006-01-02"))
 }
 
@@ -230,5 +230,5 @@ func init() {
 	launchesCmd.Flags().BoolP("cost", "c", false, "Get the total cost for all matching launches")
 	launchesCmd.Flags().BoolP("launchpad", "p", false, "Show launchpad information")
 	launchesCmd.Flags().BoolP("weather", "w", false, "Show launchpad location weather warning information")
-	launchesCmd.Flags().BoolP("asteriod", "a", false, "Show near Earth orbiting asteriod information")
+	launchesCmd.Flags().BoolP("asteroid", "a", false, "Show near Earth orbiting asteroid information")
 }

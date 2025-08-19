@@ -23,15 +23,15 @@ func GetEarthEvents(queryParams string) ([]model.NasaEarthEvent, error) {
 	return events.Events, nil
 }
 
-func GetAsteriods(queryParams string) (model.NasaAsteriod, error) {
+func GetAsteroids(queryParams string) (model.NasaAsteroid, error) {
 	url := "https://api.nasa.gov/neo/rest/v1/feed" + queryParams + "&api_key=" + GetNASAAPIKey()
 
-	asteriods, err := fetchFromAPI[model.NasaAsteriod](url)
+	asteroids, err := fetchFromAPI[model.NasaAsteroid](url)
 	if err != nil {
-		return model.NasaAsteriod{}, err
+		return model.NasaAsteroid{}, err
 	}
 
-	return asteriods, nil
+	return asteroids, nil
 }
 
 func BuildWeatherEventsQueryParams(long, lat float64, date time.Time) string {

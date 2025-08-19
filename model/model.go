@@ -75,12 +75,12 @@ type NasaEarthEvent struct {
 type NasaEarth struct {
 	Events []NasaEarthEvent `json:"events"`
 }
-type NasaAsteriod struct {
+type NasaAsteroid struct {
 	ElementCount     int                             `json:"element_count"`
-	NearEarthObjects map[string][]NasaAsteriodObject `json:"near_earth_objects"`
+	NearEarthObjects map[string][]NasaAsteroidObject `json:"near_earth_objects"`
 }
 
-type NasaAsteriodObject struct {
+type NasaAsteroidObject struct {
 	Hazardous bool `json:"is_potentially_hazardous_asteroid"`
 	Diameter  struct {
 		Meters struct {

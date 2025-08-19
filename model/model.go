@@ -75,3 +75,16 @@ type NasaEarthEvent struct {
 type NasaEarth struct {
 	Events []NasaEarthEvent `json:"events"`
 }
+type NasaAsteriod struct {
+	ElementCount     int                             `json:"element_count"`
+	NearEarthObjects map[string][]NasaAsteriodObject `json:"near_earth_objects"`
+}
+
+type NasaAsteriodObject struct {
+	Hazardous bool `json:"is_potentially_hazardous_asteroid"`
+	Diameter  struct {
+		Meters struct {
+			Estimated float64 `json:"estimated_diameter_max"`
+		} `json:"meters"`
+	} `json:"estimated_diameter"`
+}

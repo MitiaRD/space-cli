@@ -1,7 +1,9 @@
 package api
 
 import (
+	"fmt"
 	"os"
+	"time"
 
 	"github.com/MitiaRD/ReMarkable-cli/model"
 )
@@ -19,4 +21,19 @@ func GetEarthEvents(queryParams string) ([]model.NasaEarthEvent, error) {
 	}
 
 	return events.Events, nil
+}
+
+func GetAsteriods(queryParams string) (model.NasaAsteriod, error) {
+	url := "https://api.nasa.gov/neo/rest/v1/feed" + queryParams + "&api_key=" + GetNASAAPIKey()
+
+	asteriods, err := fetchFromAPI[model.NasaAsteriod](url)
+	if err != nil {
+		return model.NasaAsteriod{}, err
+	}
+
+	return asteriods, nil
+}
+
+func BuildWeatherEventsQueryParams(long, lat float64, date time.Time) string {
+	return fmt.Sprintf("?bbox=%f,%f,%f,%f&start=%s&end=%s", long-1, lat-1, long+1, lat+1, date.Format("2006-01-02"), date.Format("2006-01-02"))
 }

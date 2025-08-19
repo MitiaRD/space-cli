@@ -1,6 +1,8 @@
-# ReMarkable-cli
+# space-cli
 
-This CLI project aims to explore API's that are out of this world.
+Welcome to my cli-project for ReMarkable's technical process.
+
+This project aims to explore API's that are out of this world.
 
 Startup:
 
@@ -10,45 +12,51 @@ go build -o space-cli
 
 Following the commands below you can get to know the latest stats in space exploration:
 
-Get the upcoming launch stats from SpaceX:
+Get the upcoming launch stats (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --upcoming
 ```
 
-Get the launch stats between given dates:
+Get the launch stats between given dates (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --start 2020-01-01 --end 2025-01-01
 ```
 
-Get the launch stats for failed launches:
+Get the launch stats for failed launches (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --failed
 ```
 
-Get the launch total costs:
+Get the launch total costs (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --cost
 ```
 
+Get the launch near earth asteriods data (Data Sources: SpaceX, NASA):
+
+```sh
+./space-cli launches --asteriods
+```
+
 Example combinations;
 
-- Get the total cost of all failed launches between given dates
+- Get the total cost of all failed launches between given dates (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --start 2006-01-01 --end 2025-01-01 --failed --cost
 ```
 
-- Get launch stats for the last 5 launches with location data
+- Get launch stats for the last 5 launches with location data (Data Sources: SpaceX):
 
 ```sh
 ./space-cli launches --limit 5 --launchpad
 ```
 
-- Get launch stats for the last 5 launches with location and weather data from Nasa
+- Get launch stats for the last 5 launches with location and weather data (Data Sources: SpaceX, NASA):
 
 ```sh
 ./space-cli launches --limit 5 --launchpad --weather

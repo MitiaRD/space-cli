@@ -73,7 +73,9 @@ Available subcommands:
 			fmt.Printf("   🏷️  %s\n", launch.Name)
 			fmt.Printf("   %s\n", status)
 			fmt.Printf("   🚀 %s\n", rockets[launch.RocketId].Name)
-			fmt.Printf("   ℹ️ %v \n", launch.Details)
+			if launch.Details != "" {
+				fmt.Printf("   ℹ️ %v \n", launch.Details)
+			}
 
 			if len(launch.Crew) > 0 && crewMap != nil {
 				fmt.Printf("   👥 Crew: ")
@@ -98,7 +100,7 @@ Available subcommands:
 				fmt.Printf("      (%s)\n", launchpad.Details)
 
 				if weatherEvents, _ := cmd.Flags().GetBool("weather"); weatherEvents {
-					weatherEvents, err := api.GetEarthEvents(buildWeatherEventsQueryParams(launchpad.Longitude, launchpad.Latitude, launch.Date))
+					weatherEvents, err := api.GetEarthEvents(api.BuildWeatherEventsQueryParams(launchpad.Longitude, launchpad.Latitude, launch.Date))
 					if err != nil {
 						fmt.Printf("Error fetching weather events: %v\n", err)
 						continue
@@ -107,9 +109,38 @@ Available subcommands:
 						fmt.Printf("   🌤️  No warning events found from Nasa for this time & location\n")
 
 					} else {
-						fmt.Printf("   🌤️  %s\n", weatherEvents)
+						for _, event := range weatherEvents {
+							fmt.Printf("    🌤️  %s (%s)\n", event.Title, event.Description)
+						}
 					}
 				}
+			}
+
+			if asteriods, _ := cmd.Flags().GetBool("asteriod"); asteriods {
+				asteriods, err := api.GetAsteriods(buildAsteriodsQueryParams(launch.Date))
+				if err != nil {
+					fmt.Printf("Error fetching asteriods: %v\n", err)
+				}
+				hazardous := 0
+				nonHazardous := 0
+				maxDiameter := 0.0
+				minDiameter := 0.0
+				for _, asteriods := range asteriods.NearEarthObjects {
+					for _, asteriod := range asteriods {
+						if asteriod.Hazardous {
+							hazardous++
+						} else {
+							nonHazardous++
+						}
+						if asteriod.Diameter.Meters.Estimated > maxDiameter {
+							maxDiameter = asteriod.Diameter.Meters.Estimated
+						}
+						if asteriod.Diameter.Meters.Estimated < minDiameter || minDiameter == 0 {
+							minDiameter = asteriod.Diameter.Meters.Estimated
+						}
+					}
+				}
+				fmt.Printf("   🌍  total number of near earth asteroids %d (hazardous: %d, non-hazardous: %d) with diameters ranging from %f to %f meters\n", asteriods.ElementCount, hazardous, nonHazardous, minDiameter, maxDiameter)
 			}
 
 			fmt.Println()
@@ -142,6 +173,10 @@ func getCosts(launches []model.Launch, rockets map[string]model.Rocket) (int, er
 
 	fmt.Printf("Total cost: $%d million\n", totalCost)
 	return totalCost, nil
+}
+
+func buildAsteriodsQueryParams(date time.Time) string {
+	return fmt.Sprintf("?start_date=%s&end_date=%s", date.Format("2006-01-02"), date.Format("2006-01-02"))
 }
 
 func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
@@ -184,10 +219,6 @@ func buildLaunchQuery(cmd *cobra.Command) map[string]interface{} {
 	return query
 }
 
-func buildWeatherEventsQueryParams(long, lat float64, date time.Time) string {
-	return fmt.Sprintf("?bbox=%f,%f,%f,%f&start=%s&end=%s", long-1, lat-1, long+1, lat+1, date.Format("2006-01-02"), date.Format("2006-01-02"))
-}
-
 func init() {
 	rootCmd.AddCommand(launchesCmd)
 
@@ -199,4 +230,5 @@ func init() {
 	launchesCmd.Flags().BoolP("cost", "c", false, "Get the total cost for all matching launches")
 	launchesCmd.Flags().BoolP("launchpad", "p", false, "Show launchpad information")
 	launchesCmd.Flags().BoolP("weather", "w", false, "Show launchpad location weather warning information")
+	launchesCmd.Flags().BoolP("asteriod", "a", false, "Show near Earth orbiting asteriod information")
 }

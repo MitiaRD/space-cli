@@ -6,7 +6,12 @@ This project aims to explore API's that are out of this world.
 
 Startup:
 
+- Rename .example.env file to .env
+
+- Get a NASA API key (HERE)[https://api.nasa.gov/] and store it in the .env file
+
 ```sh
+go mod tidy
 go build -o space-cli
 ```
 

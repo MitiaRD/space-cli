@@ -27,7 +27,7 @@ Get the launch stats between given dates (Data Sources: SpaceX):
 Get the launch stats for failed launches (Data Sources: SpaceX):
 
 ```sh
-./space-cli launches --failed
+./space-cli launches --limit 5 --failed
 ```
 
 Get the launch total costs (Data Sources: SpaceX):
@@ -39,7 +39,7 @@ Get the launch total costs (Data Sources: SpaceX):
 Get the launch near earth asteriods data (Data Sources: SpaceX, NASA):
 
 ```sh
-./space-cli launches --asteriods
+./space-cli launches --limit 5 --asteriods
 ```
 
 Example combinations;

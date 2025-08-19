@@ -116,7 +116,7 @@ Available subcommands:
 				}
 			}
 
-			if asteroids, _ := cmd.Flags().GetBool("asteroid"); asteroids {
+			if asteroids, _ := cmd.Flags().GetBool("asteroids"); asteroids {
 				asteroids, err := api.GetAsteroids(buildAsteroidsQueryParams(launch.Date))
 				if err != nil {
 					fmt.Printf("Error fetching asteroids: %v\n", err)
@@ -230,5 +230,5 @@ func init() {
 	launchesCmd.Flags().BoolP("cost", "c", false, "Get the total cost for all matching launches")
 	launchesCmd.Flags().BoolP("launchpad", "p", false, "Show launchpad information")
 	launchesCmd.Flags().BoolP("weather", "w", false, "Show launchpad location weather warning information")
-	launchesCmd.Flags().BoolP("asteroid", "a", false, "Show near Earth orbiting asteroid information")
+	launchesCmd.Flags().BoolP("asteroids", "a", false, "Show near Earth orbiting asteroid information")
 }

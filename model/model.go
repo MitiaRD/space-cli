@@ -15,6 +15,7 @@ type Launch struct {
 }
 
 type Launchpad struct {
+	ID        string  `json:"id"`
 	Name      string  `json:"full_name"`
 	Locality  string  `json:"locality"`
 	Latitude  float64 `json:"latitude"`

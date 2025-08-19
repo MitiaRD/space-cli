@@ -25,14 +25,30 @@ func GetAllCrewMembers() (map[string]model.Crew, error) {
 	return crewMap, nil
 }
 
-func GetRocket(rocketId string) (model.Rocket, error) {
-	url := fmt.Sprintf("https://api.spacexdata.com/v4/rockets/%s", rocketId)
-	return fetchFromAPI[model.Rocket](url)
+func GetAllRockets() (map[string]model.Rocket, error) {
+	url := "https://api.spacexdata.com/v4/rockets"
+	rockets, err := fetchFromAPI[[]model.Rocket](url)
+	if err != nil {
+		return nil, err
+	}
+	rocketMap := make(map[string]model.Rocket)
+	for _, rocket := range rockets {
+		rocketMap[rocket.ID] = rocket
+	}
+	return rocketMap, nil
 }
 
-func GetLaunchpad(launchpadId string) (model.Launchpad, error) {
-	url := fmt.Sprintf("https://api.spacexdata.com/v4/launchpads/%s", launchpadId)
-	return fetchFromAPI[model.Launchpad](url)
+func GetAllLaunchpads() (map[string]model.Launchpad, error) {
+	url := "https://api.spacexdata.com/v4/launchpads"
+	launchpads, err := fetchFromAPI[[]model.Launchpad](url)
+	if err != nil {
+		return nil, err
+	}
+	launchpadMap := make(map[string]model.Launchpad)
+	for _, launchpad := range launchpads {
+		launchpadMap[launchpad.ID] = launchpad
+	}
+	return launchpadMap, nil
 }
 
 func fetchFromAPI[T any](url string) (T, error) {

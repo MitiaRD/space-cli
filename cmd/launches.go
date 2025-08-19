@@ -36,19 +36,29 @@ Available subcommands:
 
 		fmt.Printf("\n🚀 Launches (showing %d):\n", len(launches))
 
+		rockets, err := api.GetAllRockets()
+		if err != nil {
+			fmt.Printf("Error fetching rocket: %v\n", err)
+		}
+
 		cost, _ := cmd.Flags().GetBool("cost")
 		if cost {
-			getCosts(launches)
+			getCosts(launches, rockets)
 			return
+		}
+
+		crewMap, err := api.GetAllCrewMembers()
+		if err != nil {
+			fmt.Printf("Error fetching crew members: %v\n", err)
+		}
+
+		launchpads, err := api.GetAllLaunchpads()
+		if err != nil {
+			fmt.Printf("Error fetching launchpad: %v\n", err)
 		}
 
 		fmt.Println(strings.Repeat("-", 80))
 		for _, launch := range launches {
-			rocket, err := api.GetRocket(launch.RocketId)
-			if err != nil {
-				fmt.Printf("Error fetching rocket: %v\n", err)
-				continue
-			}
 
 			status := "❓ Unknown"
 			if launch.Success != nil {
@@ -62,30 +72,28 @@ Available subcommands:
 			fmt.Printf("📅 %s\n", launch.Date.Format("2006-01-02 15:04"))
 			fmt.Printf("   🏷️  %s\n", launch.Name)
 			fmt.Printf("   %s\n", status)
-			fmt.Printf("   🚀 %s\n", rocket.Name)
+			fmt.Printf("   🚀 %s\n", rockets[launch.RocketId].Name)
 			fmt.Printf("   ℹ️ %v \n", launch.Details)
 
-			if len(launch.Crew) > 0 {
-				crewMap, err := api.GetAllCrewMembers()
-				if err == nil {
-					fmt.Printf("   👥 Crew: ")
-					crewNames := []string{}
-					for _, crewId := range launch.Crew {
-						if crew, exists := crewMap[crewId]; exists {
-							crewNames = append(crewNames, crew.Name)
-						}
+			if len(launch.Crew) > 0 && crewMap != nil {
+				fmt.Printf("   👥 Crew: ")
+				crewNames := []string{}
+				for _, crewId := range launch.Crew {
+					if crew, exists := crewMap[crewId]; exists {
+						crewNames = append(crewNames, crew.Name)
 					}
-					fmt.Printf("%s\n", strings.Join(crewNames, ", "))
 				}
+				fmt.Printf("%s\n", strings.Join(crewNames, ", "))
 			}
 
 			launchpad, _ := cmd.Flags().GetBool("launchpad")
-			if launchpad {
-				launchpad, err := api.GetLaunchpad(launch.LaunchpadId)
-				if err != nil {
-					fmt.Printf("Error fetching launchpad: %v\n", err)
+			if launchpad && launchpads != nil {
+				launchpad, exists := launchpads[launch.LaunchpadId]
+				if !exists {
+					fmt.Printf("Launchpad not found for launch %s\n", launch.LaunchpadId)
 					continue
 				}
+
 				fmt.Printf("   📍 %s\n", launchpad.Name)
 				fmt.Printf("      (%s)\n", launchpad.Details)
 
@@ -95,7 +103,12 @@ Available subcommands:
 						fmt.Printf("Error fetching weather events: %v\n", err)
 						continue
 					}
-					fmt.Printf("   🌤️ %s\n", weatherEvents)
+					if len(weatherEvents) == 0 {
+						fmt.Printf("   🌤️  No warning events found from Nasa for this time & location\n")
+
+					} else {
+						fmt.Printf("   🌤️  %s\n", weatherEvents)
+					}
 				}
 			}
 
@@ -104,7 +117,7 @@ Available subcommands:
 	},
 }
 
-func getCosts(launches []model.Launch) (int, error) {
+func getCosts(launches []model.Launch, rockets map[string]model.Rocket) (int, error) {
 	totalCost := 0
 	var wg sync.WaitGroup
 
@@ -114,15 +127,7 @@ func getCosts(launches []model.Launch) (int, error) {
 		wg.Add(1)
 		go func(rocketId string) {
 			defer wg.Done()
-
-			rocket, err := api.GetRocket(rocketId)
-			if err != nil {
-				fmt.Printf("Error fetching rocket: %v\n", err)
-				costChan <- 0
-				return
-			}
-
-			costChan <- rocket.CostPerLaunch
+			costChan <- rockets[launch.RocketId].CostPerLaunch
 		}(launch.RocketId)
 	}
 

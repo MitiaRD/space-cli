@@ -1,8 +1,6 @@
 # space-cli
 
-Welcome to my cli-project for ReMarkable's technical process.
-
-This project aims to explore API's that are out of this world.
+This project aims to explore NASA & SpaceX API's
 
 Startup:
 
